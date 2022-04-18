@@ -93,6 +93,18 @@ async function init() {
     console.log(dai);
     // Send 1 DAI to "ricmoo.firefly.eth"
 
+    const filterFrom = daiContract.filters.Transfer(accountAddress, null);
+
+    // Filter for all token transfers to me
+    const filterTo = daiContract.filters.Transfer(null, accountAddress);
+
+    const sentTransactions = await daiContract.queryFilter(filterFrom, -10000);
+
+    // List all transfers ever sent to me
+    const recievedTransactions = await daiContract.queryFilter(filterTo);
+
+    console.log({ sentTransactions, recievedTransactions });
+
     sendBtn.addEventListener("click", (e) => {
       try {
         e.preventDefault();
