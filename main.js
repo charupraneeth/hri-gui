@@ -6,6 +6,7 @@ const getAccountResult = document.querySelector("#getAccountsResult");
 const tokenName = document.querySelector("#tokenName");
 const tokenBalance = document.querySelector("#tokenBalance");
 const myAddress = document.querySelector("#myAddress");
+const amountInput = document.querySelector("#amount");
 
 const recieverAddressInput = document.querySelector("#recieverAddress");
 const sendBtn = document.querySelector(".send-btn");
@@ -86,11 +87,19 @@ async function init() {
       // EventFragment and functions to fetch the block,
       // transaction and receipt and event functions
     });
+
+    const transactionFilter = daiContract.filters.Transfer(
+      null,
+      accountAddress
+    );
+
+    daiContract.on(transactionFilter, (from, to, amount, event) => {
+      // The to will always be "address"
+      console.log(`I got ${formatEther(amount)} from ${from}.`);
+    });
+
     const daiWithSigner = daiContract.connect(signer);
 
-    const dai = ethers.utils.parseUnits("1.0", 18);
-
-    console.log(dai);
     // Send 1 DAI to "ricmoo.firefly.eth"
 
     const filterFrom = daiContract.filters.Transfer(accountAddress, null);
@@ -103,11 +112,29 @@ async function init() {
     // List all transfers ever sent to me
     const recievedTransactions = await daiContract.queryFilter(filterTo);
 
-    console.log({ sentTransactions, recievedTransactions });
+    recievedTransactions.forEach((transaction) => {
+      const [sender, reciever, hexAmount] = transaction.args;
+
+      const amountRecieved = ethers.utils.formatEther(hexAmount.toBigInt());
+
+      //   console.log({ sender, reciever, amountRecieved });
+    });
+    sentTransactions.forEach((transaction) => {
+      const [sender, reciever, hexAmount] = transaction.args;
+
+      const amountRecieved = ethers.utils.formatEther(hexAmount.toBigInt());
+
+      //   console.log({ sender, reciever, amountRecieved });
+    });
+    // console.log({ sentTransactions, recievedTransactions });
 
     sendBtn.addEventListener("click", (e) => {
       try {
         e.preventDefault();
+        console.log(amountInput.value);
+        const dai = ethers.utils.parseUnits(amountInput.value, 18);
+
+        console.log(dai);
         const tx = daiWithSigner.transfer(recieverAddressInput.value, dai);
         console.log(recieverAddressInput.value);
         console.log(tx);
